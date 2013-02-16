@@ -1,7 +1,7 @@
 A little compiler compiling DOM fragments in XML to DOM-building JavaScript functions.
 
 To build this code, get and install SBT from 
-	https://github.com/harrah/xsbt
+	https://github.com/sbt/sbt
 
 Get and install these library/libraries before building:
 	https://github.com/ritschwumm/scutil
