@@ -30,7 +30,7 @@ object DomTemplate {
 				ConstructingParser.fromFile(file, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> 	("loading xml failed: " + file.getPath + " cause: " + e.getMessage).fail.toValidationNEL 
+				case e:Exception	=> 	("loading xml failed: " + file.getPath + " cause: " + e.getMessage).fail.toValidationNel 
 			}
 			
 	def parseXML(string:String):Safe[Node]	=
@@ -38,7 +38,7 @@ object DomTemplate {
 				ConstructingParser.fromSource(Source fromString string, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> ("parsing xml failed: " + e.getMessage).fail.toValidationNEL 
+				case e:Exception	=> ("parsing xml failed: " + e.getMessage).fail.toValidationNel 
 			}
 			
 	//------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ object DomTemplate {
 				Compiled(comment, None, Nil).success
 				
 			case _ => 
-				("unexpected node: " + node).fail.toValidationNEL 
+				("unexpected node: " + node).fail.toValidationNel 
 		}
 		
 		compileNode(elem)
@@ -144,7 +144,7 @@ object DomTemplate {
 	private def toplevelElem(node:Node):Safe[Elem]	=
 			node match {
 				case x:Elem => x.success
-				case _		=> "expected element at toplevel".fail.toValidationNEL
+				case _		=> "expected element at toplevel".fail.toValidationNel
 			}
 			
 	private def attrText(elem:Elem, key:String):Safe[String]	=

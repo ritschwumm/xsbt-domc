@@ -2,14 +2,14 @@ name			:= "domc"
 
 organization	:= "de.djini"
 
-version			:= "0.12.0"
+version			:= "0.13.0"
 
 scalaVersion	:= "2.10.1"
 
 libraryDependencies	++= Seq(
 	"de.djini"		%%	"scutil"			% "0.18.0"		% "compile",
 	"de.djini"		%%	"scwebapp"			% "0.15.0"		% "compile",
-	"org.scalaz"	%%	"scalaz-core"		% "7.0.0-M8"	% "compile",
+	"org.scalaz"	%%	"scalaz-core"		% "7.0.0-M9"	% "compile",
 	"javax.servlet"	%	"javax.servlet-api"	% "3.0.1"		% "provided"
 )
 
