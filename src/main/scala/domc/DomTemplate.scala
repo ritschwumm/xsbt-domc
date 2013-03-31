@@ -30,7 +30,7 @@ object DomTemplate {
 				ConstructingParser.fromFile(file, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> 	("loading xml failed: " + file.getPath + " cause: " + e.getMessage).fail.liftFailNel
+				case e:Exception	=> 	("loading xml failed: " + file.getPath + " cause: " + e.getMessage).fail.toValidationNEL 
 			}
 			
 	def parseXML(string:String):Safe[Node]	=
@@ -38,13 +38,14 @@ object DomTemplate {
 				ConstructingParser.fromSource(Source fromString string, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> ("parsing xml failed: " + e.getMessage).fail.liftFailNel
+				case e:Exception	=> ("parsing xml failed: " + e.getMessage).fail.toValidationNEL 
 			}
 			
 	//------------------------------------------------------------------------------
 			
 	val hash		= "xid"
 	val toplevel	= "$"
+	val prefix		= "x"
 	
 	/** compiles a template element with name and hash attributes into either some error messages or a JS function */
 	def compile(node:Node):Safe[String] =
@@ -58,92 +59,96 @@ object DomTemplate {
 				function(name, body)
 			}
 	
-	private case class Compiled(code:String, varName:Option[String], refs:List[VarRef])
+	private case class Compiled(code:String, varName:Option[String], refs:Seq[VarRef])
 	private case class VarRef(xid:String, varName:String)
 	
 	/** compiles a node into either some error messages or a dom-constructing JS function */
 	private def statements(elem:Elem, hash:String):Safe[Compiled]	= {
+		// TODO use the State monad
 		var	nextId		= 0
 		def genId():Int	= { nextId += 1; nextId } 
-		def freshName()	= "x" + genId()
+		def freshName()	= prefix + genId()
 		
 		def compileNode(node:Node):Safe[Compiled] = node match {
 			case x:Elem	=>
-				val	varName		= freshName()
-				val	ownCreate	= "var " + varName + " = document.createElement(" + escape(x.label) + ");"
-				val ownAttrs	= x.attributes filter { _.key != hash } map { it:MetaData => varName + ".setAttribute(" + escape(it.key) + ", " + escape(it.value.text) + ");" }
-				val ownRef		= attrText(x, hash).toOption map { VarRef(_, varName) } 
-				
-				val	subResults	= x.child map compileNode
-				// TODO use applicative accumulation somehow
-				val subProblems:Seq[NonEmptyList[String]]	= subResults flatMap { _.fail.toOption }
-				subProblems.toList.toNel match {
-					case Some(nel)	=> 	nel flatMap identity fail;
-					case None		=>
-						val sub			= subResults flatMap { _.toOption }
-						val subCodes	= sub map { _.code }
-						val subRefs		= sub.toList flatMap { _.refs }
-						val appends		= sub flatMap { it => it.varName map { jt => varName + ".appendChild(" + jt + ");" } }
-						
-						val code	= (subCodes ++ List(ownCreate) ++ ownAttrs ++ appends) mkString "\n"
-						val refs	= ownRef.toList ++ subRefs
-						Compiled(code, Some(varName), refs).success
+				// TODO i still want errors for the good compileds... 
+				val subs:Safe[Vector[Compiled]]	= x.child.toVector traverse compileNode
+				subs map { sub =>
+					val	ownVarName	= freshName()
+					val	ownCreate	= s"var ${ownVarName} = document.createElement(${escape(x.label)});"
+					val ownAttrs	= x.attributes filter { _.key != hash } map { it:MetaData =>
+						s"${ownVarName}.setAttribute(${escape(it.key)}, ${escape(it.value.text)});" 
+					}
+					val ownRef		= attrText(x, hash).toOption map { VarRef(_, ownVarName) } 
+					
+					val subCodes	= sub map { _.code }
+					val subRefs		= sub flatMap { _.refs }
+					val subVars		= sub flatMap { _.varName }
+					val subAppends	= subVars map { subVarName =>
+						s"${ownVarName}.appendChild(${subVarName});" 
+					}
+					
+					val refs	= ownRef.toVector ++ subRefs
+					val code	= (subCodes ++ Vector(ownCreate) ++ ownAttrs ++ subAppends) mkString "\n"
+					
+					Compiled(code, Some(ownVarName), refs)
 				}
 				
 			case x:Text	=>
 				val	varName	= freshName()
-				val	create	= "var " + varName + " = document.createTextNode(" + escape(x.text) + ");"
+				val	create	= s"var ${varName} = document.createTextNode(${escape(x.text)});"
 				Compiled(create, Some(varName), Nil).success
 			
 			case Comment(text)	=>
-				val	comment	= "/* " + text + " */"	// TODO escape */
+				val	comment	= s"/* ${text} */"	// TODO escape */
 				Compiled(comment, None, Nil).success
 				
 			case _ => 
-				("unexpected node: " + node).fail.liftFailNel 
+				("unexpected node: " + node).fail.toValidationNEL 
 		}
 		
 		compileNode(elem)
 	}
 	
 	private def check(compiled:Compiled):Safe[Compiled] = {
+		val hasVarName	= if (compiled.varName.isEmpty)	Some("toplevel node is not an element") else None 
 		val hasDollar	= compiled.refs find { _.xid == toplevel } map { "forbidden id: " + _.xid }
-		var seen	= new mutable.HashSet[String]
-		var dups	= new mutable.ListBuffer[String]
-		compiled.refs foreach { 
-			case VarRef(k,_) if seen contains k	=> dups	+= k
-			case VarRef(k,_) 					=> seen	+= k
-			case _								=> ()
-		}
-		val	duplicates	= dups map { "duplicate id: " + _ }
-		val problems:List[String]	= hasDollar.toList ++ duplicates
-		problems.toNel toFailure compiled
+		val duplicates	= compiled.refs collect { case VarRef(k,_) => k } groupBy identity collect { case (k,vs) if vs.size > 1 => "duplicate id: " + k }
+		(hasVarName.toList ++ hasDollar.toList ++ duplicates.toList).toNel toFailure compiled
 	}	
 	
 	private def function(name:String, compiled:Compiled):String	=
-			List(
-				"function " + name + "() {",
-				indent("\t", compiled.code),
-				indent("\t", "return {"),
-				indent("\t\t", 
-					(VarRef(toplevel, "x1") :: compiled.refs) map {
-						case VarRef(xid,varName)	=> escape(xid) + ":\t" + varName
-					} mkString ",\n"
-				),
-				indent("\t", "};"),
-				"}"
-			) mkString "\n"
+			s"""
+			|function ${name}() {
+			|	${compiled.code}
+			|	return {
+			|		${hash(outputRefs(compiled)) }
+			|	};
+			|}
+			""".stripMargin
+			
+	// add toplevel var as prefix ($)
+	private def outputRefs(compiled:Compiled):Seq[VarRef]	=
+			toplevelRef(compiled).toVector ++ compiled.refs
+
+	private def toplevelRef(compiled:Compiled):Option[VarRef]	=
+			compiled.varName map { it => VarRef(toplevel, it) }
+			
+	private def hash(refs:Seq[VarRef]):String	=
+			refs
+			.map { case VarRef(xid, varName)	=> s"${escape(xid)}:	${varName}"	 }
+			.mkString (",\n")
 			
 	//------------------------------------------------------------------------------
 	
 	private def toplevelElem(node:Node):Safe[Elem]	=
 			node match {
 				case x:Elem => x.success
-				case _		=> "expected element at toplevel".fail.liftFailNel
+				case _		=> "expected element at toplevel".fail.toValidationNEL
 			}
 			
 	private def attrText(elem:Elem, key:String):Safe[String]	=
-			elem.attributes find (_.key == key) map (_.value.text) toSuccess nel("missing attribute: " + key)
+			elem.attributes find { _.key == key } map { _.value.text } toSuccess NonEmptyList("missing attribute: " + key)
 	
 	private def escape(s:String) = 
 			s map {
@@ -163,7 +168,4 @@ object DomTemplate {
 					case c 		=> c.toString
 				}
 			} mkString("\"","","\"") 
-	
-	private def indent(prefix:String, s:String):String =
-			s.replaceAll("(?m)^", prefix) 
 }
