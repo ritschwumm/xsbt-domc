@@ -1,54 +1,54 @@
 A little compiler compiling DOM fragments in XML to DOM-building JavaScript functions.
 
 To build this code, get and install SBT from 
-	https://github.com/sbt/sbt
+    https://github.com/sbt/sbt
 
 Get and install these library/libraries before building:
-	https://github.com/ritschwumm/scutil
-	https://github.com/ritschwumm/scwebapp
+    https://github.com/ritschwumm/scutil
+    https://github.com/ritschwumm/scwebapp
 
 Use these commands to build:
-	git clone git@github.com:ritschwumm/domc.git
-	cd domc
-	sbt publish-local
+    git clone git@github.com:ritschwumm/domc.git
+    cd domc
+    sbt publish-local
 
 Details
-	
-	If you compile an XML snipped like this
-	
-		<div xid="Message">
-			<span xid="text"/>
-			<a xid="remove">x</a>
-		</div>
-	
-	you get a JS function like this
-	
-		function Message() {
-			...	// create a DOM structure
-			return {
-				// the toplevel tag is always accessible under this name
-				"$":		...	// the toplevel div
-				// if a tag has an xid, it is accessible under that name
-				"Message":	...	// the toplevel div by its xid
-				"text":		...	// the text-span by its xid
-				"remove":	...	// the remove-link by its xid
-			}; 
-		}
+    
+    If you compile an XML snipped like this
+    
+        <div xid="Message">
+            <span xid="text"/>
+            <a xid="remove">x</a>
+        </div>
+    
+    you get a JS function like this
+    
+        function Message() {
+            ... // create a DOM structure
+            return {
+                // the toplevel tag is always accessible under this name
+                "$":        ... // the toplevel div
+                // if a tag has an xid, it is accessible under that name
+                "Message":  ... // the toplevel div by its xid
+                "text":     ... // the text-span by its xid
+                "remove":   ... // the remove-link by its xid
+            }; 
+        }
 
-	There is no support for conditionals, looping or any logic.
-	These need to be done in JS code outside the template mechanism.
-	
+    There is no support for conditionals, looping or any logic.
+    These need to be done in JS code outside the template mechanism.
+    
 Servlet
 
-	To automatically compile every file whose name ends in ".dom"
-	in your web application, you can add this servlet to your web.xml
-	
-		<servlet>
-			<servlet-name>DomServlet</servlet-name>
-			<servlet-class>domc.DomServlet</servlet-class>
-			<load-on-startup>90</load-on-startup>
-		</servlet>
-		<servlet-mapping>
-			<servlet-name>DomServlet</servlet-name>
-			<url-pattern>*.dom</url-pattern>
-		</servlet-mapping>
+    To automatically compile every file whose name ends in ".dom"
+    in your web application, you can add this servlet to your web.xml
+    
+        <servlet>
+            <servlet-name>DomServlet</servlet-name>
+            <servlet-class>domc.DomServlet</servlet-class>
+            <load-on-startup>90</load-on-startup>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>DomServlet</servlet-name>
+            <url-pattern>*.dom</url-pattern>
+        </servlet-mapping>
