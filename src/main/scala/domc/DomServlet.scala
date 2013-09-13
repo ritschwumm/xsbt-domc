@@ -5,8 +5,7 @@ import java.io._
 import javax.servlet.http._
 
 import scutil.Implicits._
-import scutil.Resources._
-import scutil.Charsets._
+import scutil.io.Charsets._
 import scutil.log._
 
 import scwebapp._
