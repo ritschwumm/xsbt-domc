@@ -30,7 +30,7 @@ object DomTemplate {
 				ConstructingParser.fromFile(file, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> 	("loading xml failed: " + file.getPath + " cause: " + e.getMessage).fail.toValidationNel 
+				case e:Exception	=> 	s"loading xml failed: ${file.getPath} cause: ${e.getMessage}".fail.toValidationNel
 			}
 			
 	def parseXML(string:String):Safe[Node]	=
@@ -38,7 +38,7 @@ object DomTemplate {
 				ConstructingParser.fromSource(Source fromString string, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> ("parsing xml failed: " + e.getMessage).fail.toValidationNel 
+				case e:Exception	=> s"parsing xml failed: ${e.getMessage}".fail.toValidationNel
 			}
 			
 	//------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ object DomTemplate {
 				Compiled(comment, None, Nil).success
 				
 			case _ => 
-				("unexpected node: " + node).fail.toValidationNel 
+				s"unexpected node: ${node}".fail.toValidationNel 
 		}
 		
 		compileNode(elem)
@@ -148,24 +148,24 @@ object DomTemplate {
 			}
 			
 	private def attrText(elem:Elem, key:String):Safe[String]	=
-			elem.attributes find { _.key == key } map { _.value.text } toSuccess NonEmptyList("missing attribute: " + key)
+			elem.attributes find { _.key == key } map { _.value.text } toSuccess NonEmptyList(s"missing attribute: ${key}")
 	
 	private def escape(s:String) = 
-			s map {
-				_ match {
-					case '"' 	=> "\\\""
-					case '\\'	=>	"\\\\"
-					// this would be allowed but is ugly
-					//case '/'	=> "\\/"
-					// these are optional
-					case '\b'	=> "\\b"
-					case '\f'	=> "\\f"
-					case '\n'	=> "\\n"
-					case '\r'	=> "\\r"
-					case '\t'	=> "\\t"
-					case c 
-					if c < 32	=> "\\u%04x".format(c.toInt)
-					case c 		=> c.toString
-				}
-			} mkString("\"","","\"") 
+			s 
+			.map {
+				case '"' 	=> "\\\""
+				case '\\'	=>	"\\\\"
+				// this would be allowed but is ugly
+				//case '/'	=> "\\/"
+				// these are optional
+				case '\b'	=> "\\b"
+				case '\f'	=> "\\f"
+				case '\n'	=> "\\n"
+				case '\r'	=> "\\r"
+				case '\t'	=> "\\t"
+				case c 
+				if c < 32	=> "\\u%04x".format(c.toInt)
+				case c 		=> c.toString
+			} 
+			.mkString("\"", "", "\"") 
 }
