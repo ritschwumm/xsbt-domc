@@ -30,7 +30,7 @@ object DomTemplate {
 				ConstructingParser.fromFile(file, true).document.docElem.success
 			}
 			catch {
-				case e:Exception	=> 	s"loading xml failed: ${file.getPath} cause: ${e.getMessage}".fail.toValidationNel
+				case e:Exception	=> s"loading xml failed: ${file.getPath} cause: ${e.getMessage}".fail.toValidationNel
 			}
 			
 	def parseXML(string:String):Safe[Node]	=
