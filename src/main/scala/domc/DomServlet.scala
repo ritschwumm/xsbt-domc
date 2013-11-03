@@ -9,10 +9,9 @@ import scutil.io.Charsets._
 import scutil.log._
 
 import scwebapp._
-import scwebapp.HttpImplicits._
-import scwebapp.HttpInstances._
-import scwebapp.HttpStatusEnum._
-import scwebapp.StandardMimeTypes._
+import scwebapp.implicits._
+import scwebapp.instances._
+import scwebapp.status._
 
 final class DomServlet extends HttpServlet with Logging {
 	private val encoding				= utf_8
