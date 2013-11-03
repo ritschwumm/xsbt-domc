@@ -35,6 +35,7 @@ final class DomServlet extends HttpServlet with Logging {
 	
 	private def handle(request:HttpServletRequest, response:HttpServletResponse) {
 		request		setEncoding	encoding
+		// TODO not necessary
 		response	setEncoding	encoding
 		response.noCache()	// TODO no!
 		
