@@ -1,36 +1,38 @@
 package domc
 
+import scutil.lang.Nes
+
 object Safe {
 	def win[F,W](value:W):Safe[F,W]	=
 			new Safe[F,W] {
-				def cata[X](fail:Nel[F]=>X, win:W=>X):X	= win(value)
+				def cata[X](fail:Nes[F]=>X, win:W=>X):X	= win(value)
 			}
 			
-	def fail[F,W](problems:Nel[F]):Safe[F,W]	=
+	def fail[F,W](problems:Nes[F]):Safe[F,W]	=
 			new Safe[F,W] {
-				def cata[X](fail:Nel[F]=>X, win:W=>X):X	= fail(problems)
+				def cata[X](fail:Nes[F]=>X, win:W=>X):X	= fail(problems)
 			}
 			
 	def fail1[F,W](problem:F):Safe[F,W]	=
-			fail(Nel single problem)
+			fail(Nes single problem)
 		
-	def optional[F,W](problems:Nel[F], value:Option[W]):Safe[F,W]	=
+	def optional[F,W](problems:Nes[F], value:Option[W]):Safe[F,W]	=
 			value match {
 				case Some(x)	=> win(x)
 				case None		=> fail(problems)
 			}
 			
 	def optional1[F,W](problem:F, value:Option[W]):Safe[F,W]	=
-			optional(Nel single problem, value)
+			optional(Nes single problem, value)
 		
 	def problematic[F,W](problems:Seq[F], value:W):Safe[F,W]	=
-			Nel fromSeq problems map fail getOrElse win(value)
+			Nes fromSeq problems map fail getOrElse win(value)
 		
 	def traverseIndexedSeq[F,S,T](func:S=>Safe[F,T]):IndexedSeq[S]=>Safe[F,IndexedSeq[T]]	= 
 			ss	=> {
 				(ss map func foldLeft win[F,IndexedSeq[T]](Vector.empty[T])) { (old, cur) =>
 					old zip cur cata (
-						(zipFail:Nel[F])		=> fail(zipFail),
+						(zipFail:Nes[F])		=> fail(zipFail),
 						{ case (oldWin, curWin)	=> win(oldWin :+ curWin) }
 					)
 				}
@@ -38,7 +40,7 @@ object Safe {
 }
 
 sealed trait Safe[+F,+W] {
-	def cata[X](fail:Nel[F]=>X, win:W=>X):X
+	def cata[X](fail:Nes[F]=>X, win:W=>X):X
 	
 	def isWin:Boolean	= cata(_ => false, _ => true)
 	def isFail:Boolean	= !isWin
