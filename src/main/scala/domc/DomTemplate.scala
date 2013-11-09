@@ -2,43 +2,41 @@ package domc
 
 import java.io.File
 
-import scala.collection.mutable
 import scala.io.Source
 import scala.xml._
 import scala.xml.parsing.ConstructingParser
 
-import scalaz.{ Node => ZNode, Source => ZSource, _ }
-import Scalaz._
+import domc.Safe._
 
 object DomTemplate {
-	def compile(file:File):Safe[String]   =
+	def compile(file:File):Safe[String,String]   =
 			for {
 				xml		<- loadXML(file)
 				comp	<- DomTemplate compile xml
 			} 
 			yield comp
 			
-	def compile(string:String):Safe[String]   =
+	def compile(string:String):Safe[String,String]   =
 			for {
 				xml		<- parseXML(string)
 				comp	<- DomTemplate compile xml
 			} 
 			yield comp
 	
-	def loadXML(file:File):Safe[Node] =
+	def loadXML(file:File):Safe[String,Node] =
 			try {
-				ConstructingParser.fromFile(file, true).document.docElem.success
+				win(ConstructingParser.fromFile(file, true).document.docElem)
 			}
-			catch {
-				case e:Exception	=> s"loading xml failed: ${file.getPath} cause: ${e.getMessage}".fail.toValidationNel
+			catch { case e:Exception	=>
+				fail1(s"loading xml failed: ${file.getPath} cause: ${e.getMessage}")
 			}
 			
-	def parseXML(string:String):Safe[Node]	=
+	def parseXML(string:String):Safe[String,Node]	=
 			try {
-				ConstructingParser.fromSource(Source fromString string, true).document.docElem.success
+				win(ConstructingParser.fromSource(Source fromString string, true).document.docElem)
 			}
-			catch {
-				case e:Exception	=> s"parsing xml failed: ${e.getMessage}".fail.toValidationNel
+			catch { case e:Exception	=>
+				fail1(s"parsing xml failed: ${e.getMessage}")
 			}
 			
 	//------------------------------------------------------------------------------
@@ -48,7 +46,7 @@ object DomTemplate {
 	val prefix		= "x"
 	
 	/** compiles a template element with name and hash attributes into either some error messages or a JS function */
-	def compile(node:Node):Safe[String] =
+	def compile(node:Node):Safe[String,String] =
 			for {
 				template	<- toplevelElem(node)
 				name		<- attrText(template, hash)
@@ -63,16 +61,16 @@ object DomTemplate {
 	private case class VarRef(xid:String, varName:String)
 	
 	/** compiles a node into either some error messages or a dom-constructing JS function */
-	private def statements(elem:Elem, hash:String):Safe[Compiled]	= {
+	private def statements(elem:Elem, hash:String):Safe[String,Compiled]	= {
 		// TODO use the State monad
 		var	nextId		= 0
 		def genId():Int	= { nextId += 1; nextId } 
 		def freshName()	= prefix + genId()
 		
-		def compileNode(node:Node):Safe[Compiled] = node match {
+		def compileNode(node:Node):Safe[String,Compiled] = node match {
 			case x:Elem	=>
 				// TODO i still want errors for the good compileds... 
-				val subs:Safe[Vector[Compiled]]	= x.child.toVector traverse compileNode
+				val subs:Safe[String,IndexedSeq[Compiled]]	= traverseIndexedSeq(compileNode)(x.child.toVector)
 				subs map { sub =>
 					val	ownVarName	= freshName()
 					val	ownCreate	= s"var ${ownVarName} = document.createElement(${escape(x.label)});"
@@ -97,24 +95,25 @@ object DomTemplate {
 			case x:Text	=>
 				val	varName	= freshName()
 				val	create	= s"var ${varName} = document.createTextNode(${escape(x.text)});"
-				Compiled(create, Some(varName), Nil).success
+				win(Compiled(create, Some(varName), Nil))
 			
 			case Comment(text)	=>
 				val	comment	= s"/* ${text} */"	// TODO escape */
-				Compiled(comment, None, Nil).success
+				win(Compiled(comment, None, Nil))
 				
 			case _ => 
-				s"unexpected node: ${node}".fail.toValidationNel 
+				fail1(s"unexpected node: ${node}") 
 		}
 		
 		compileNode(elem)
 	}
 	
-	private def check(compiled:Compiled):Safe[Compiled] = {
+	private def check(compiled:Compiled):Safe[String,Compiled] = {
 		val hasVarName	= if (compiled.varName.isEmpty)	Some("toplevel node is not an element") else None 
 		val hasDollar	= compiled.refs find { _.xid == toplevel } map { "forbidden id: " + _.xid }
 		val duplicates	= compiled.refs collect { case VarRef(k,_) => k } groupBy identity collect { case (k,vs) if vs.size > 1 => "duplicate id: " + k }
-		(hasVarName.toList ++ hasDollar.toList ++ duplicates.toList).toNel toFailure compiled
+		val problems	= hasVarName.toList ++ hasDollar.toList ++ duplicates.toList
+		problematic(problems, compiled)
 	}	
 	
 	private def function(name:String, compiled:Compiled):String	=
@@ -141,14 +140,17 @@ object DomTemplate {
 			
 	//------------------------------------------------------------------------------
 	
-	private def toplevelElem(node:Node):Safe[Elem]	=
+	private def toplevelElem(node:Node):Safe[String,Elem]	=
 			node match {
-				case x:Elem => x.success
-				case _		=> "expected element at toplevel".fail.toValidationNel
+				case x:Elem => win(x)
+				case _		=> fail1("expected element at toplevel")
 			}
 			
-	private def attrText(elem:Elem, key:String):Safe[String]	=
-			elem.attributes find { _.key == key } map { _.value.text } toSuccess NonEmptyList(s"missing attribute: ${key}")
+	private def attrText(elem:Elem, key:String):Safe[String,String]	=
+			optional1(
+				s"missing attribute: ${key}",
+				elem.attributes find { _.key == key } map { _.value.text }
+			)
 	
 	private def escape(s:String) = 
 			s 

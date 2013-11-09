@@ -56,10 +56,10 @@ final class DomServlet extends HttpServlet with Logging {
 					text	=
 							(url withReader encoding) { _.readFully }
 					code	<-
-							DomTemplate compile text fold (
+							DomTemplate compile text cata (
 								err => {
 									ERROR("cannot compile DOM", path)
-									ERROR(err.list:_*)
+									ERROR((err.toSeq):_*)
 									Fail(SetStatus(INTERNAL_SERVER_ERROR))
 								},
 								Win.apply
