@@ -12,21 +12,12 @@ object Safe {
 			new Safe[F,W] {
 				def cata[X](fail:Nes[F]=>X, win:W=>X):X	= fail(problems)
 			}
-			
-	def fail1[F,W](problem:F):Safe[F,W]	=
-			fail(Nes single problem)
 		
-	def optional[F,W](problems:Nes[F], value:Option[W]):Safe[F,W]	=
-			value match {
-				case Some(x)	=> win(x)
-				case None		=> fail(problems)
-			}
-			
-	def optional1[F,W](problem:F, value:Option[W]):Safe[F,W]	=
-			optional(Nes single problem, value)
-		
-	def problematic[F,W](problems:Seq[F], value:W):Safe[F,W]	=
-			Nes fromSeq problems map fail getOrElse win(value)
+	/*
+	def catchException[W](block: =>W):Safe[Exception,W]	=
+			try { win(block) }
+			catch { case e:Exception => fail(e.nes) }
+	*/
 		
 	def traverseIndexedSeq[F,S,T](func:S=>Safe[F,T]):IndexedSeq[S]=>Safe[F,IndexedSeq[T]]	= 
 			ss	=> {
@@ -37,6 +28,35 @@ object Safe {
 					)
 				}
 			}
+			
+	//------------------------------------------------------------------------------
+	
+	implicit class Nessify[T](peer:T) {
+		def nes:Nes[T]	= Nes single peer
+	}
+	
+	implicit class Optional[T](peer:Option[T]) {
+		def toSafe[F](problems: =>Nes[F]):Safe[F,T]	=
+				peer match {
+					case Some(x)	=> win(x)
+					case None		=> fail(problems)
+				}
+	}
+	
+	implicit class Conditional(peer:Boolean) {
+		def safeGuard[F](problems: =>Nes[F]):Safe[F,Unit]	=
+				if (peer)	win(())
+				else		fail(problems)
+			
+		def safePrevent[F](problems: =>Nes[F]):Safe[F,Unit]	=
+				if (peer)	fail(problems)
+				else		win(())
+	}
+	
+	implicit class Problematic[T](peer:Seq[T]) {
+		def preventing[W](value: =>W):Safe[T,W]	=
+				Nes fromSeq peer map fail getOrElse win(value)
+	}
 }
 
 sealed trait Safe[+F,+W] {
