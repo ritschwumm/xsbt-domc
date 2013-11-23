@@ -1,4 +1,4 @@
-package domc
+package domc.servlet
 
 import java.io._
 
@@ -14,6 +14,8 @@ import scwebapp.implicits._
 import scwebapp.instances._
 import scwebapp.method._
 import scwebapp.status._
+
+import domc._
 
 /**
 mount this with an url-pattern of *.dom

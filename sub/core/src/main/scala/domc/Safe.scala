@@ -1,7 +1,5 @@
 package domc
 
-import scutil.lang.Nes
-
 object Safe {
 	def win[F,W](value:W):Safe[F,W]	=
 			new Safe[F,W] {
@@ -65,6 +63,22 @@ sealed trait Safe[+F,+W] {
 	def isWin:Boolean	= cata(_ => false, _ => true)
 	def isFail:Boolean	= !isWin
 	
+	def forEach(func:W=>Unit) {
+		cata(_ => (), func)
+	}
+	
+	def map[U](func:W=>U):Safe[F,U]	=
+			cata(
+				Safe.fail,
+				func andThen Safe.win
+			)
+			
+	def flatMap[FF>:F,U](func:W=>Safe[FF,U]):Safe[FF,U]	=
+			cata(
+				Safe.fail,
+				func
+			)
+			
 	def zip[FF>:F,U](that:Safe[FF,U]):Safe[FF,(W,U)]	=
 			this cata (
 				thisProblems	=> {
@@ -79,18 +93,6 @@ sealed trait Safe[+F,+W] {
 						thatResult		=> Safe win ((thisResult, thatResult))
 					)
 				}
-			)
-	
-	def flatMap[FF>:F,U](func:W=>Safe[FF,U]):Safe[FF,U]	=
-			cata(
-				Safe.fail,
-				func
-			)
-			
-	def map[U](func:W=>U):Safe[F,U]	=
-			cata(
-				Safe.fail,
-				func andThen Safe.win
 			)
 			
 	def toOption:Option[W]	=

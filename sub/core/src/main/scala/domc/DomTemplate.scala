@@ -24,19 +24,23 @@ object DomTemplate {
 			yield comp
 	
 	def loadXML(file:File):Safe[String,Node] =
-			try {
-				win(ConstructingParser.fromFile(file, true).document.docElem)
-			}
-			catch { case e:Exception	=>
-				fail(s"loading xml failed: ${file.getPath} cause: ${e.getMessage}".nes)
-			}
+			parseSource(
+				Source fromFile file,
+				e => s"loading xml file failed: ${file.getPath} cause: ${e.getMessage}"
+			)
 			
 	def parseXML(string:String):Safe[String,Node]	=
+			parseSource(
+				Source fromString string,
+				e => s"parsing xml string failed: ${e.getMessage}"
+			)
+			
+	private def parseSource[T](source:Source, problem:Exception=>String):Safe[String,Node]	=
 			try {
-				win(ConstructingParser.fromSource(Source fromString string, true).document.docElem)
+				win((ConstructingParser fromSource (source, true)).document.docElem)
 			}
-			catch { case e:Exception	=>
-				fail(s"parsing xml failed: ${e.getMessage}".nes)
+			catch { case e:Exception =>
+				fail(problem(e).nes)
 			}
 			
 	//------------------------------------------------------------------------------
@@ -141,7 +145,6 @@ object DomTemplate {
 			|}
 			""".stripMargin
 			
-	// add toplevel var as prefix ($)
 	private def outputRefs(compiled:Compiled):Seq[VarRef]	=
 			toplevelRef(compiled).toVector ++ compiled.refs
 
@@ -172,8 +175,8 @@ object DomTemplate {
 			.map {
 				case '"' 	=> "\\\""
 				case '\\'	=>	"\\\\"
-				// this would be allowed but is ugly
-				//case '/'	=> "\\/"
+				// this would be legal, but it's ugly
+				// case '/'	=> "\\/"
 				// these are optional
 				case '\b'	=> "\\b"
 				case '\f'	=> "\\f"

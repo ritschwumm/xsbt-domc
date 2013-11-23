@@ -12,7 +12,7 @@ Use these commands to build:
     cd domc
     sbt publish-local
 
-Details
+Core (package domc-core)
     
     If you compile an XML snipped like this
     
@@ -38,14 +38,36 @@ Details
     There is no support for conditionals, looping or any logic.
     These need to be done in JS code outside the template mechanism.
     
-Servlet
+Sbt Plugin (package domc-sbt)
+    
+    Add the plugin to your project in project/plugins.sbt:
+    
+        addSbtPlugin("de.djini" % "xsbt-domc" % "0.35.0")
+        
+    Include the plugin in you project's build.sbt:
+
+        domcSettings
+    
+    Put dom files (named *.dom) sources into
+    
+        src/main/domc
+        
+    Once set up you can use the following tasks in sbt:
+
+        domc
+        
+    The resulting files (named *.dom.js) go into
+    
+        target/domc
+
+Servlet (package domc-servlet)
 
     To automatically compile every file whose name ends in ".dom"
     in your web application, you can add this servlet to your web.xml
     
         <servlet>
             <servlet-name>DomServlet</servlet-name>
-            <servlet-class>domc.DomServlet</servlet-class>
+            <servlet-class>domc.servlet.DomServlet</servlet-class>
             <load-on-startup>90</load-on-startup>
         </servlet>
         <servlet-mapping>

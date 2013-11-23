@@ -1,26 +1,31 @@
-name			:= "domc"
-
 organization	:= "de.djini"
 
-version			:= "0.34.0"
+name			:= "domc"
 
-scalaVersion	:= "2.10.3"
+version			:= "0.35.0"
 
-libraryDependencies	++= Seq(
-	"de.djini"		%%	"scutil"			% "0.34.0"	% "compile",
-	"de.djini"		%%	"scwebapp"			% "0.33.0"	% "compile",
-	"javax.servlet"	%	"javax.servlet-api"	% "3.0.1"	% "provided"
-)
+organization	in ThisBuild	<<= organization
 
-scalacOptions	++= Seq(
-	"-deprecation",
-	"-unchecked",
-	// "-language:implicitConversions",
-	// "-language:existentials",
-	// "-language:higherKinds",
-	// "-language:reflectiveCalls",
-	// "-language:dynamics",
-	"-language:postfixOps",
-	// "-language:experimental.macros"
-	"-feature"
-)
+version			in ThisBuild	<<= version
+
+scalaVersion	in ThisBuild	:= "2.10.3"
+
+lazy val `domc`	=
+		project 
+		.in			(file("."))
+		.aggregate	(`domc-core`, `domc-sbt`, `domc-servlet`)
+		.settings	(publishArtifact := false)
+
+lazy val `domc-core`	= 
+		project 
+		.in			(file("sub/core"))
+
+lazy val `domc-sbt`	=
+		project
+		.in			(file("sub/sbt"))
+		.dependsOn	(`domc-core`)
+
+lazy val `domc-servlet`	=
+		project
+		.in			(file("sub/servlet"))
+		.dependsOn	(`domc-core`)
