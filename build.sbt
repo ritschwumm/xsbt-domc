@@ -2,11 +2,11 @@ organization	:= "de.djini"
 
 name			:= "domc"
 
-version			:= "0.36.0"
+version			:= "0.37.0"
 
-organization	in ThisBuild	<<= organization
+organization	in ThisBuild	:= organization.value
 
-version			in ThisBuild	<<= version
+version			in ThisBuild	:= version.value
 
 scalaVersion	in ThisBuild	:= "2.10.3"
 

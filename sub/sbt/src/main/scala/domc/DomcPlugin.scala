@@ -19,19 +19,16 @@ object DomcPlugin extends Plugin {
 	
 	lazy val domcSettings:Seq[Def.Setting[_]]	=
 			Seq(
-				domcBuild			<<= domcTask,
-				domcSource			<<= (Keys.sourceDirectory in Compile)	{ _ / "domc"	},
-				domcTarget			<<= Keys.target							{ _ / "domc"	},
-				Keys.watchSources	<<= (Keys.watchSources, domcSource) map {
-					(watchSources, domcSource) => { 
-						val sourceFiles	= (domcSource ** domcFilter).get
-						watchSources ++ sourceFiles
-					}
-				}
+				domcSource	:= (Keys.sourceDirectory in Compile).value	/ "domc",
+				domcTarget	:= Keys.target.value						/ "domc",
+				domcBuild	:=
+						domcTaskImpl(
+							streams	= Keys.streams.value,
+							source	= domcSource.value,
+							target	= domcTarget.value
+						),
+				Keys.watchSources	:= Keys.watchSources.value ++ (domcSource.value ** domcFilter).get
 			)
-	
-	private def domcTask:Def.Initialize[Task[File]] = 
-			(Keys.streams, domcSource, domcTarget) map domcTaskImpl
 	
 	private def domcTaskImpl(streams:TaskStreams, source:File, target:File):File	= {
 		streams.log info s"compiling dom templates from ${source} to ${target}"
