@@ -30,9 +30,6 @@ final class DomServlet extends HttpServlet with Logging {
 	override def destroy() {}
     
     override def service(request:HttpServletRequest, response:HttpServletResponse) {
-		// TODO no!
-		response.noCache()	
-		
 		val action:Tried[HttpResponder,HttpResponder]	=
 				for {
 					_		<- 
@@ -55,8 +52,13 @@ final class DomServlet extends HttpServlet with Logging {
 								ERROR("resource not found", path)
 								SetStatus(NOT_FOUND)
 							}
-					text	=
-							(url withReader encoding) { _.readFully }
+					text	<-
+							Catch.byType[IOException] 
+							.in { (url withReader encoding) { _.readFully } }
+							.mapFail { e =>
+								ERROR("io error", e)
+								SetStatus(NOT_FOUND)
+							}
 					code	<-
 							DomTemplate compile text cata (
 								err => {
@@ -74,6 +76,7 @@ final class DomServlet extends HttpServlet with Logging {
 					SendString(code)
 				}
 				
-		action.merge apply response
+		// TODO NoCache is wrong...
+		(NoCache ~> action.merge) apply response
 	}
 }
