@@ -24,7 +24,7 @@ only reacts to GET requests
 */
 final class DomServlet extends HttpServlet with Logging {
 	private val encoding				= utf_8
-    private val text_javascript_charset	= text_javascript attribute ("charset", encoding.name)
+    private val text_javascript_charset	= text_javascript addParameter ("charset", encoding.name)
 	
     override def init() {}
 	override def destroy() {}
