@@ -1,8 +1,8 @@
 name	:= "domc-servlet"
 
 libraryDependencies	++= Seq(
-	"de.djini"		%%	"scutil"			% "0.37.0"	% "compile",
-	"de.djini"		%%	"scwebapp"			% "0.38.0"	% "compile",
+	"de.djini"		%%	"scutil"			% "0.38.0"	% "compile",
+	"de.djini"		%%	"scwebapp"			% "0.39.0"	% "compile",
 	"javax.servlet"	%	"javax.servlet-api"	% "3.0.1"	% "provided"
 )
 

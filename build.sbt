@@ -2,7 +2,7 @@ organization	:= "de.djini"
 
 name			:= "domc"
 
-version			:= "0.40.0"
+version			:= "0.41.0"
 
 organization	in ThisBuild	:= organization.value
 
