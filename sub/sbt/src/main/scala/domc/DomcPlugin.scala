@@ -45,8 +45,11 @@ object DomcPlugin extends Plugin {
 						_ => Seq.empty
 					)
 				}
+				
+		errors foreach { streams.log error _ }
 		// TODO ugly
-		if (errors.nonEmpty) sys error (errors mkString "\n")
+		if (errors.nonEmpty) sys error "domc failed"
+		
 		target
 	}
 }
