@@ -41,7 +41,7 @@ Sbt Plugin (package domc-sbt)
     
     Add the plugin to your project in project/plugins.sbt:
     
-        addSbtPlugin("de.djini" % "xsbt-domc" % "0.53.0")
+        addSbtPlugin("de.djini" % "xsbt-domc" % "0.54.0")
         
     Include the plugin in you project's build.sbt:
 
