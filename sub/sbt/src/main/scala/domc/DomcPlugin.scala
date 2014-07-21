@@ -8,20 +8,15 @@ import domc._
 object DomcPlugin extends Plugin {
 	val domcFilter	= GlobFilter("*.dom")
 	
-	/** build the js files */
-	val domcBuild	= TaskKey[File]("domc")
-	
-	/** directory with input files */
-	val domcSource	= SettingKey[File]("domc-source")
-	
-	/** directory for output files */
-	val domcTarget	= SettingKey[File]("domc-target")
+	val domc		= taskKey[File]("build the js files")
+	val domcSource	= settingKey[File]("directory with input files")
+	val domcTarget	= settingKey[File]("directory for output files")
 	
 	lazy val domcSettings:Seq[Def.Setting[_]]	=
 			Seq(
 				domcSource	:= (Keys.sourceDirectory in Compile).value	/ "domc",
 				domcTarget	:= Keys.target.value						/ "domc",
-				domcBuild	:=
+				domc		:=
 						domcTaskImpl(
 							streams	= Keys.streams.value,
 							source	= domcSource.value,
