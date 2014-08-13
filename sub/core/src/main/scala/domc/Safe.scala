@@ -1,5 +1,7 @@
 package domc
 
+import scala.collection.immutable.{ Seq => ISeq, IndexedSeq => IndexedISeq }
+
 object Safe {
 	def win[F,W](value:W):Safe[F,W]	=
 			new Safe[F,W] {
@@ -17,9 +19,9 @@ object Safe {
 			catch { case e:Exception => fail(e.nes) }
 	*/
 		
-	def traverseIndexedSeq[F,S,T](func:S=>Safe[F,T]):IndexedSeq[S]=>Safe[F,IndexedSeq[T]]	= 
+	def traverseIndexedISeq[F,S,T](func:S=>Safe[F,T]):IndexedISeq[S]=>Safe[F,IndexedISeq[T]]	= 
 			ss	=> {
-				(ss map func foldLeft win[F,IndexedSeq[T]](Vector.empty[T])) { (old, cur) =>
+				(ss map func foldLeft win[F,IndexedISeq[T]](Vector.empty[T])) { (old, cur) =>
 					old zip cur cata (
 						(zipFail:Nes[F])		=> fail(zipFail),
 						{ case (oldWin, curWin)	=> win(oldWin :+ curWin) }
@@ -51,9 +53,9 @@ object Safe {
 				else		win(())
 	}
 	
-	implicit class Problematic[T](peer:Seq[T]) {
+	implicit class Problematic[T](peer:ISeq[T]) {
 		def preventing[W](value: =>W):Safe[T,W]	=
-				Nes fromSeq peer map fail getOrElse win(value)
+				Nes fromISeq peer map fail getOrElse win(value)
 	}
 }
 

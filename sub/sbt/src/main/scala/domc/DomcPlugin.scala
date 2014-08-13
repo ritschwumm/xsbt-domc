@@ -3,6 +3,8 @@ import Keys.{ TaskStreams }
 import Project.Initialize
 import IO.utf8
 
+import scala.collection.immutable.{ Seq => ISeq }
+
 import domc._
 
 object DomcPlugin extends Plugin {
@@ -12,8 +14,8 @@ object DomcPlugin extends Plugin {
 	val domcSource	= settingKey[File]("directory with input files")
 	val domcTarget	= settingKey[File]("directory for output files")
 	
-	lazy val domcSettings:Seq[Def.Setting[_]]	=
-			Seq(
+	lazy val domcSettings:ISeq[Def.Setting[_]]	=
+			ISeq(
 				domcSource	:= (Keys.sourceDirectory in Compile).value	/ "domc",
 				domcTarget	:= Keys.target.value						/ "domc",
 				domc		:=
@@ -29,15 +31,15 @@ object DomcPlugin extends Plugin {
 		streams.log info s"compiling dom templates from ${source} to ${target}"
 		IO delete target
 		
-		val errors:Seq[String]	=
+		val errors:ISeq[String]	=
 				selectSubpaths(source, domcFilter).toVector flatMap { case (input, path) =>
 					// TODO ugly
 					val output		= target / (path + ".js")
 					val compiled	= DomTemplate compile input
 					compiled forEach { IO write (output, _, utf8) }
 					compiled cata (
-						_.toSeq,
-						_ => Seq.empty
+						_.toISeq,
+						_ => ISeq.empty
 					)
 				}
 				

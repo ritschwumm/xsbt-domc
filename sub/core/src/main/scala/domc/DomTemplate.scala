@@ -2,6 +2,7 @@ package domc
 
 import java.io.File
 
+import scala.collection.immutable.{ Seq => ISeq }
 import scala.io.Source
 import scala.xml._
 import scala.xml.parsing.ConstructingParser
@@ -60,7 +61,7 @@ object DomTemplate {
 				function(name, body)
 			}
 	
-	private case class Compiled(code:String, varName:Option[String], refs:Seq[VarRef])
+	private case class Compiled(code:String, varName:Option[String], refs:ISeq[VarRef])
 	private case class VarRef(xid:String, varName:String)
 	
 	/** compiles a node into either some error messages or a dom-constructing JS function */
@@ -75,7 +76,7 @@ object DomTemplate {
 		def compileNode(node:Node):Safe[String,Compiled] = node match {
 			case elem:Elem	=>
 				for {
-					subs		<- traverseIndexedSeq(compileNode)(elem.child.toVector)
+					subs		<- traverseIndexedISeq(compileNode)(elem.child.toVector)
 					
 					// own stuff
 					ownVarName	= freshName()
@@ -127,7 +128,7 @@ object DomTemplate {
 		compileNode(elem)
 	}
 	
-	private def preventDuplicates(refs:Seq[VarRef]):Safe[String,Unit]	=
+	private def preventDuplicates(refs:ISeq[VarRef]):Safe[String,Unit]	=
 			refs
 			.collect	{ case VarRef(k,_) => k }
 			.groupBy	(identity)
@@ -145,13 +146,13 @@ object DomTemplate {
 			|}
 			""".stripMargin
 			
-	private def outputRefs(compiled:Compiled):Seq[VarRef]	=
+	private def outputRefs(compiled:Compiled):ISeq[VarRef]	=
 			toplevelRef(compiled).toVector ++ compiled.refs
 
 	private def toplevelRef(compiled:Compiled):Option[VarRef]	=
 			compiled.varName map { VarRef(toplevel, _) }
 			
-	private def hash(refs:Seq[VarRef]):String	=
+	private def hash(refs:ISeq[VarRef]):String	=
 			refs
 			.map		{ case VarRef(xid, varName)	=> s"${escape(xid)}:	${varName}"	 }
 			.mkString	(",\n")

@@ -1,18 +1,20 @@
 package domc
 
+import scala.collection.immutable.{ Seq => ISeq }
+
 object Nes {
 	def single[T](head:T):Nes[T]	=
-			Nes(head, Seq.empty)
+			Nes(head, ISeq.empty)
 		
-	def fromSeq[T](it:Seq[T]):Option[Nes[T]]	=
+	def fromISeq[T](it:ISeq[T]):Option[Nes[T]]	=
 			if (it.nonEmpty)	Some(Nes(it.head, it.tail))
 			else				None
 }
 
-case class Nes[+T](head:T, tail:Seq[T]) {
+case class Nes[+T](head:T, tail:ISeq[T]) {
 	def ++[U>:T](that:Nes[U]):Nes[U]	=
 			Nes(this.head, (this.tail :+ that.head) ++ that.tail)
 	
-	def toSeq:Seq[T]	=
+	def toISeq:ISeq[T]	=
 			head +: tail
 }
