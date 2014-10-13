@@ -1,11 +1,12 @@
+package xsbtDomc
+
 import sbt._
-import Keys.{ TaskStreams }
-import Project.Initialize
+import Keys.TaskStreams
 
 import xsbtUtil._
 import domc._
 
-object DomcPlugin extends Plugin {
+object Import {
 	val domcFilter		= GlobFilter("*.dom") && NotDirectoryFilter
 	
 	val domc			= taskKey[Seq[PathMapping]]("build output files")
@@ -16,30 +17,35 @@ object DomcPlugin extends Plugin {
 	
 	val domcProcessor	= taskKey[Seq[PathMapping]=>Seq[PathMapping]]("compiler")
 	
-	lazy val domcSettings:Seq[Def.Setting[_]]	=
+}
+
+object DomcPlugin extends AutoPlugin {
+	//------------------------------------------------------------------------------
+	//## exports
+	
+	override def requires:Plugins		= empty
+	
+	override def trigger:PluginTrigger	= allRequirements
+	
+	lazy val autoImport	= Import
+	import autoImport._
+	
+	override def projectSettings:Seq[Def.Setting[_]]	=
 			Vector(
-				domcSourceDir	:= (Keys.sourceDirectory in Compile).value	/ "domc",
-				domcSources		:=
-						sourcesTask(
-							sourceDir	= domcSourceDir.value
-						), 
-				domcTargetDir	:= Keys.target.value						/ "domc",
-				domcProcessor	:=
+				domcSourceDir		:= (Keys.sourceDirectory in Compile).value	/ "domc",
+				domcSources			:= selectSubpaths(domcSourceDir.value, domcFilter),
+				domcTargetDir		:= Keys.target.value						/ "domc",
+				domcProcessor		:=
 						processorTask(
 							streams		= Keys.streams.value,
 							targetDir	= domcTargetDir.value
 						),
-				domc			:=
-						domcTask(
-							streams		= Keys.streams.value,
-							sources		= domcSources.value,
-							processor	= domcProcessor.value
-						),
+				domc				:= domcProcessor.value apply domcSources.value.toVector,
 				Keys.watchSources	:= Keys.watchSources.value ++ (domcSources.value map PathMapping.getFile)
 			)
 			
-	private def sourcesTask(sourceDir:File):Traversable[PathMapping]	= 
-			selectSubpaths(sourceDir, domcFilter)
+	//------------------------------------------------------------------------------
+	//## tasks
 		
 	private def processorTask(streams:TaskStreams, targetDir:File):Seq[PathMapping]=>Seq[PathMapping]	=
 			inputs => {
@@ -65,12 +71,4 @@ object DomcPlugin extends Plugin {
 				
 				Safe traverseISeq (treatFile _).tupled apply inputs.toVector cata (errorExit, identity)
 			}
-	
-	private def domcTask(
-		streams:TaskStreams, 
-		sources:Traversable[PathMapping], 
-		processor:Seq[PathMapping]=>Seq[PathMapping]
-	):Seq[PathMapping]	= {
-		processor(sources.toVector)
-	}
 }
