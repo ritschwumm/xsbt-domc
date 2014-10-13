@@ -8,7 +8,7 @@ import scala.collection.immutable.{ Seq => ISeq }
 import domc._
 
 object DomcPlugin extends Plugin {
-	val domcFilter	= GlobFilter("*.dom")
+	val domcFilter	= GlobFilter("*.dom") && -DirectoryFilter
 	
 	val domc		= taskKey[File]("build the js files")
 	val domcSource	= settingKey[File]("directory with input files")
