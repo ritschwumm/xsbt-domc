@@ -3,11 +3,13 @@ package xsbtDomc
 import sbt._
 import Keys.TaskStreams
 
-import xsbtUtil._
+import xsbtUtil.types._
+import xsbtUtil.{ util => xu }
+
 import domc._
 
 object Import {
-	val domcFilter		= GlobFilter("*.dom") && NotDirectoryFilter
+	val domcFilter		= GlobFilter("*.dom") && xu.filter.NotDirectoryFilter
 	
 	val domc			= taskKey[Seq[PathMapping]]("build output files")
 	val domcTargetDir	= settingKey[File]("directory for output files")
@@ -23,14 +25,14 @@ object DomcPlugin extends AutoPlugin {
 	//------------------------------------------------------------------------------
 	//## exports
 	
-	override def requires:Plugins		= empty
+	override val requires:Plugins		= empty
 	
-	override def trigger:PluginTrigger	= allRequirements
+	override val trigger:PluginTrigger	= noTrigger
 	
 	lazy val autoImport	= Import
 	import autoImport._
 	
-	override def projectSettings:Seq[Def.Setting[_]]	=
+	override lazy val projectSettings:Seq[Def.Setting[_]]	=
 			Vector(
 				domcSourceDir		:= (Keys.sourceDirectory in Compile).value	/ "domc",
 				domcSources			:= selectSubpaths(domcSourceDir.value, domcFilter),
@@ -41,7 +43,7 @@ object DomcPlugin extends AutoPlugin {
 							targetDir	= domcTargetDir.value
 						),
 				domc				:= domcProcessor.value apply domcSources.value.toVector,
-				Keys.watchSources	:= Keys.watchSources.value ++ (domcSources.value map PathMapping.getFile)
+				Keys.watchSources	:= Keys.watchSources.value ++ (domcSources.value map xu.pathMapping.getFile)
 			)
 			
 	//------------------------------------------------------------------------------
@@ -64,10 +66,8 @@ object DomcPlugin extends AutoPlugin {
 					compiled map		{ _ => (targetFile, targetPath) }
 				}
 				
-				def errorExit(errors:Nes[String]):Nothing	= {
-					errors foreach { streams.log error _ }
-					throw FailureException
-				}
+				def errorExit(errors:Nes[String]):Nothing	=
+						xu.fail logging (streams, (errors.toISeq):_*)
 				
 				Safe traverseISeq (treatFile _).tupled apply inputs.toVector cata (errorExit, identity)
 			}
