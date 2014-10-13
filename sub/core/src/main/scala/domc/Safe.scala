@@ -1,6 +1,6 @@
 package domc
 
-import scala.collection.immutable.{ Seq => ISeq, IndexedSeq => IndexedISeq }
+import scala.collection.immutable.{ Seq => ISeq }
 
 object Safe {
 	def win[F,W](value:W):Safe[F,W]	=
@@ -19,9 +19,9 @@ object Safe {
 			catch { case e:Exception => fail(e.nes) }
 	*/
 		
-	def traverseIndexedISeq[F,S,T](func:S=>Safe[F,T]):IndexedISeq[S]=>Safe[F,IndexedISeq[T]]	= 
+	def traverseISeq[F,S,T](func:S=>Safe[F,T]):ISeq[S]=>Safe[F,ISeq[T]]	= 
 			ss	=> {
-				(ss map func foldLeft win[F,IndexedISeq[T]](Vector.empty[T])) { (old, cur) =>
+				(ss map func foldLeft win[F,ISeq[T]](Vector.empty[T])) { (old, cur) =>
 					old zip cur cata (
 						(zipFail:Nes[F])		=> fail(zipFail),
 						{ case (oldWin, curWin)	=> win(oldWin :+ curWin) }

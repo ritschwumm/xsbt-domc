@@ -2,6 +2,8 @@ sbtPlugin		:= true
 
 name			:= "domc-sbt"
 
+addSbtPlugin("de.djini" % "xsbt-util"	% "0.1.0")
+
 scalacOptions	++= Seq(
 	"-deprecation",
 	"-unchecked",

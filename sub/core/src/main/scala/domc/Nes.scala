@@ -14,6 +14,9 @@ object Nes {
 case class Nes[+T](head:T, tail:ISeq[T]) {
 	def ++[U>:T](that:Nes[U]):Nes[U]	=
 			Nes(this.head, (this.tail :+ that.head) ++ that.tail)
+		
+	def foreach(func:T=>Unit):Unit	=
+			toISeq foreach func
 	
 	def toISeq:ISeq[T]	=
 			head +: tail

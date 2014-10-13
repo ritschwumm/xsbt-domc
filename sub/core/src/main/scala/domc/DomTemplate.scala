@@ -76,7 +76,7 @@ object DomTemplate {
 		def compileNode(node:Node):Safe[String,Compiled] = node match {
 			case elem:Elem	=>
 				for {
-					subs		<- traverseIndexedISeq(compileNode)(elem.child.toVector)
+					subs		<- traverseISeq(compileNode)(elem.child.toVector)
 					
 					// own stuff
 					ownVarName	= freshName()
