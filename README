@@ -9,12 +9,12 @@ Get and install these library/libraries before building:
     
 Use these commands to build:
     git clone git@github.com:ritschwumm/xsbt-domc.git
-    cd domc
+    cd xsbt-domc
     sbt publish-local
 
-Core (package domc-core)
-    
-    If you compile an XML snipped like this
+What it does
+
+    If you compile an XML snippet like this
     
         <div xid="Message">
             <span xid="text"/>
@@ -42,12 +42,12 @@ Sbt Plugin (package domc-sbt)
     
     Add the plugin to your project in project/plugins.sbt:
     
-        addSbtPlugin("de.djini" % "xsbt-webapp-domc" % <version>)
+        addSbtPlugin("de.djini" % "xsbt-domc" % <version>)
         
     Put dom files (named *.dom) sources into
     
-        src/main/domc
+        src/main/webapp
         
     Include domc in the webapp pipeline:
     
-    	webappPipeline		+= domcProcessor
+        webappPipeline      += domcProcessor

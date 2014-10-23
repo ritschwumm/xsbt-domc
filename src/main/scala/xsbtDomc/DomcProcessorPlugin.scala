@@ -16,7 +16,7 @@ object Import {
 	val domcBuildDir	= settingKey[File]("directory for output files")
 }
 
-object DomcPlugin extends AutoPlugin {
+object DomcProcssorPlugin extends AutoPlugin {
 	//------------------------------------------------------------------------------
 	//## exports
 	
