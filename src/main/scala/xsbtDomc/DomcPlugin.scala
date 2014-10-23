@@ -6,61 +6,54 @@ import Keys.TaskStreams
 import xsbtUtil.types._
 import xsbtUtil.{ util => xu }
 
-import domc._
+import xsbtWebApp.WebAppPlugin
+import xsbtWebApp.Import.WebAppProcessor
 
 object Import {
 	val domcFilter		= GlobFilter("*.dom") && xu.filter.NotDirectoryFilter
-	
-	val domc			= taskKey[Seq[PathMapping]]("build output files")
-	val domcTargetDir	= settingKey[File]("directory for output files")
-	
-	val domcSources		= taskKey[Traversable[PathMapping]]("input files")
-	val domcSourceDir	= settingKey[File]("directory with input files")
-	
-	val domcProcessor	= taskKey[Seq[PathMapping]=>Seq[PathMapping]]("compiler")
-	
+	val domcProcessor	= taskKey[WebAppProcessor]("processor for xsbt-webapp")
+	val domcFileSuffix	= settingKey[String]("suffix for file names")
+	val domcBuildDir	= settingKey[File]("directory for output files")
 }
 
 object DomcPlugin extends AutoPlugin {
 	//------------------------------------------------------------------------------
 	//## exports
 	
-	override val requires:Plugins		= empty
+	override val requires:Plugins		= WebAppPlugin
 	
-	override val trigger:PluginTrigger	= noTrigger
+	override val trigger:PluginTrigger	= allRequirements
 	
 	lazy val autoImport	= Import
 	import autoImport._
 	
 	override lazy val projectSettings:Seq[Def.Setting[_]]	=
 			Vector(
-				domcSourceDir		:= (Keys.sourceDirectory in Compile).value	/ "domc",
-				domcSources			:= selectSubpaths(domcSourceDir.value, domcFilter),
-				domcTargetDir		:= Keys.target.value						/ "domc",
 				domcProcessor		:=
 						processorTask(
 							streams		= Keys.streams.value,
-							targetDir	= domcTargetDir.value
+							fileSuffix	= domcFileSuffix.value,
+							buildDir	= domcBuildDir.value
 						),
-				domc				:= domcProcessor.value apply domcSources.value.toVector,
-				Keys.watchSources	:= Keys.watchSources.value ++ (domcSources.value map xu.pathMapping.getFile)
+				domcFileSuffix		:= ".js",
+				domcBuildDir		:= Keys.target.value / "domc"
 			)
 			
 	//------------------------------------------------------------------------------
 	//## tasks
 		
-	private def processorTask(streams:TaskStreams, targetDir:File):Seq[PathMapping]=>Seq[PathMapping]	=
+	def processorTask(streams:TaskStreams, fileSuffix:String, buildDir:File):WebAppProcessor	=
 			inputs => {
-				streams.log info s"compiling dom templates to ${targetDir}"
-				IO delete targetDir
+				streams.log info s"compiling dom templates to ${buildDir}"
+				IO delete buildDir
 				
 				def treatFile(inFile:File, path:String):Safe[String,PathMapping]	=
 						if (domcFilter accept inFile)	compileFile(inFile, path)
 						else							Safe win ((inFile, path))
 					
 				def compileFile(inFile:File, path:String):Safe[String,PathMapping]	= {
-					val targetPath	= path + ".js"
-					val targetFile	= targetDir / targetPath
+					val targetPath	= path + fileSuffix
+					val targetFile	= buildDir / targetPath
 					val compiled	= DomTemplate compile inFile
 					compiled forEach	{ IO write (targetFile, _, IO.utf8) }
 					compiled map		{ _ => (targetFile, targetPath) }

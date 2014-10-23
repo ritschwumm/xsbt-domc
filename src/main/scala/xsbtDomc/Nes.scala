@@ -1,4 +1,4 @@
-package domc
+package xsbtDomc
 
 import scala.collection.immutable.{ Seq => ISeq }
 

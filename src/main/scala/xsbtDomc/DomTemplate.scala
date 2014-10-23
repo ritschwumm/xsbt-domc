@@ -1,4 +1,4 @@
-package domc
+package xsbtDomc
 
 import java.io.File
 
@@ -7,7 +7,7 @@ import scala.io.Source
 import scala.xml._
 import scala.xml.parsing.ConstructingParser
 
-import domc.Safe._
+import xsbtDomc.Safe._
 
 object DomTemplate {
 	def compile(file:File):Safe[String,String]   =

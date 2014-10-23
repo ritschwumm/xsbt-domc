@@ -1,26 +1,26 @@
+sbtPlugin		:= true
+
+name			:= "xsbt-domc"
+
 organization	:= "de.djini"
 
-name			:= "domc"
+version			:= "1.3.0"
 
-version			:= "1.2.0"
+scalacOptions	++= Seq(
+	"-deprecation",
+	"-unchecked",
+	// "-language:implicitConversions",
+	// "-language:existentials",
+	// "-language:higherKinds",
+	// "-language:reflectiveCalls",
+	// "-language:dynamics",
+	// "-language:postfixOps",
+	// "-language:experimental.macros"
+	"-feature"
+)
 
-organization	in ThisBuild	:= organization.value
+conflictManager	:= ConflictManager.strict
 
-version			in ThisBuild	:= version.value
+addSbtPlugin("de.djini" % "xsbt-util"	% "0.2.0")
 
-scalaVersion	in ThisBuild	:= "2.10.4"
-
-lazy val `domc`	=
-		project 
-		.in			(file("."))
-		.aggregate	(`domc-core`, `domc-sbt`)
-		.settings	(publishArtifact := false)
-
-lazy val `domc-core`	= 
-		project 
-		.in			(file("sub/core"))
-
-lazy val `domc-sbt`	=
-		project
-		.in			(file("sub/sbt"))
-		.dependsOn	(`domc-core`)
+addSbtPlugin("de.djini" % "xsbt-webapp"	% "1.2.0")

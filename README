@@ -3,8 +3,12 @@ A little compiler compiling DOM fragments in XML to DOM-building JavaScript func
 To build this code, get and install SBT from 
     https://github.com/sbt/sbt
 
+Get and install these library/libraries before building:
+    https://github.com/ritschwumm/xsbt-util
+    https://github.com/ritschwumm/xsbt-webapp
+    
 Use these commands to build:
-    git clone git@github.com:ritschwumm/domc.git
+    git clone git@github.com:ritschwumm/xsbt-domc.git
     cd domc
     sbt publish-local
 
@@ -38,20 +42,12 @@ Sbt Plugin (package domc-sbt)
     
     Add the plugin to your project in project/plugins.sbt:
     
-        addSbtPlugin("de.djini" % "xsbt-domc" % <version>)
+        addSbtPlugin("de.djini" % "xsbt-webapp-domc" % <version>)
         
-    Include the plugin in your project's build.sbt:
-
-        domcSettings
-    
     Put dom files (named *.dom) sources into
     
         src/main/domc
         
-    Once set up you can use the following tasks in sbt:
-
-        domc
-        
-    The resulting files (named *.dom.js) go into
+    Include domc in the webapp pipeline:
     
-        target/domc
+    	webappPipeline		+= domcProcessor
