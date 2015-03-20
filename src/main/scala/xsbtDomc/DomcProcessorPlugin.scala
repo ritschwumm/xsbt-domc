@@ -4,13 +4,13 @@ import sbt._
 import Keys.TaskStreams
 
 import xsbtUtil.types._
+import xsbtUtil.data._
 import xsbtUtil.{ util => xu }
 
 import xsbtWebApp.WebAppPlugin
 import xsbtWebApp.Import.WebAppProcessor
 
 import xsbtDomc.compiler._
-import xsbtDomc.data._
 
 object Import {
 	val domcFilter		= GlobFilter("*.dom") && xu.filter.NotDirectoryFilter
@@ -58,7 +58,7 @@ object DomcProcessorPlugin extends AutoPlugin {
 					val targetPath	= path + fileSuffix
 					val targetFile	= buildDir / targetPath
 					val compiled	= XmlCompiler compileFile inFile
-					compiled forEach	{ IO write (targetFile, _, IO.utf8) }
+					compiled foreach	{ IO write (targetFile, _, IO.utf8) }
 					compiled map		{ _ => (targetFile, targetPath) }
 				}
 				

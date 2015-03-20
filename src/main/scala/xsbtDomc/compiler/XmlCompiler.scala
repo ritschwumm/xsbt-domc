@@ -7,8 +7,9 @@ import scala.io.Source
 import scala.xml._
 import scala.xml.parsing.ConstructingParser
 
-import xsbtDomc.data._
-import xsbtDomc.data.Safe._
+import xsbtUtil.implicits._
+import xsbtUtil.data._
+import xsbtUtil.data.Safe._
 
 object XmlCompiler {
 	//------------------------------------------------------------------------------
@@ -154,7 +155,7 @@ object XmlCompiler {
 				val hash		= Vector((toplevelId, mkVarName(toplevel.index))) ++ generateHash(numbered)
 				
 				val hashExpr		= JS hashExpr hash
-				val functionExpr	= 
+				val functionExpr	=
 						JS functionExpr (
 							paramRefs	= ISeq.empty,
 							bodyStmts	= statements,
