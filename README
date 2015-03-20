@@ -1,12 +1,12 @@
 A little compiler compiling DOM fragments in XML to DOM-building JavaScript functions
 
-To build this code, get and install SBT from 
+To build this code, get and install SBT from
     https://github.com/sbt/sbt
 
 Get and install these library/libraries before building:
     https://github.com/ritschwumm/xsbt-util
     https://github.com/ritschwumm/xsbt-webapp
-    
+
 Use these commands to build:
     git clone git@github.com:ritschwumm/xsbt-domc.git
     cd xsbt-domc
@@ -15,14 +15,14 @@ Use these commands to build:
 What it does
 
     If you compile an XML snippet like this
-    
+
         <div xid="Message">
             <span xid="text"/>
             <a xid="remove">x</a>
         </div>
-    
+
     you get a JS function like this
-    
+
         function Message() {
             ... // create a DOM structure
             return {
@@ -32,22 +32,22 @@ What it does
                 "Message":  ... // the toplevel div by its xid
                 "text":     ... // the text-span by its xid
                 "remove":   ... // the remove-link by its xid
-            }; 
+            };
         }
 
     There is no support for conditionals, looping or any logic.
     These need to be done in JS code outside the template mechanism.
-    
+
 Sbt Plugin (package domc-sbt)
-    
+
     Add the plugin to your project in project/plugins.sbt:
-    
+
         addSbtPlugin("de.djini" % "xsbt-domc" % <version>)
-        
+
     Put dom files (named *.dom) sources into
-    
+
         src/main/webapp
-        
+
     Include domc in the webapp pipeline:
-    
+
         webappPipeline      += domcProcessor

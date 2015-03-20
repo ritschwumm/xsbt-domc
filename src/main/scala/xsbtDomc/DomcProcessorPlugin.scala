@@ -9,6 +9,8 @@ import xsbtUtil.{ util => xu }
 import xsbtWebApp.WebAppPlugin
 import xsbtWebApp.Import.WebAppProcessor
 
+import xsbtDomc.data._
+
 object Import {
 	val domcFilter		= GlobFilter("*.dom") && xu.filter.NotDirectoryFilter
 	val domcProcessor	= taskKey[WebAppProcessor]("processor for xsbt-webapp")

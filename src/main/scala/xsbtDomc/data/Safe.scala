@@ -1,4 +1,4 @@
-package xsbtDomc
+package xsbtDomc.data
 
 import scala.collection.immutable.{ Seq => ISeq }
 
@@ -19,7 +19,7 @@ object Safe {
 			catch { case e:Exception => fail(e.nes) }
 	*/
 		
-	def traverseISeq[F,S,T](func:S=>Safe[F,T]):ISeq[S]=>Safe[F,ISeq[T]]	= 
+	def traverseISeq[F,S,T](func:S=>Safe[F,T]):ISeq[S]=>Safe[F,ISeq[T]]	=
 			ss	=> {
 				(ss map func foldLeft win[F,ISeq[T]](Vector.empty[T])) { (old, cur) =>
 					old zip cur cata (
