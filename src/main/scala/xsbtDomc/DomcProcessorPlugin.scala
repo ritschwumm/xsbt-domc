@@ -9,6 +9,7 @@ import xsbtUtil.{ util => xu }
 import xsbtWebApp.WebAppPlugin
 import xsbtWebApp.Import.WebAppProcessor
 
+import xsbtDomc.compiler._
 import xsbtDomc.data._
 
 object Import {
@@ -18,7 +19,7 @@ object Import {
 	val domcBuildDir	= settingKey[File]("directory for output files")
 }
 
-object DomcProcssorPlugin extends AutoPlugin {
+object DomcProcessorPlugin extends AutoPlugin {
 	//------------------------------------------------------------------------------
 	//## exports
 	
@@ -56,7 +57,7 @@ object DomcProcssorPlugin extends AutoPlugin {
 				def compileFile(inFile:File, path:String):Safe[String,PathMapping]	= {
 					val targetPath	= path + fileSuffix
 					val targetFile	= buildDir / targetPath
-					val compiled	= DomTemplate compile inFile
+					val compiled	= XmlCompiler compileFile inFile
 					compiled forEach	{ IO write (targetFile, _, IO.utf8) }
 					compiled map		{ _ => (targetFile, targetPath) }
 				}
