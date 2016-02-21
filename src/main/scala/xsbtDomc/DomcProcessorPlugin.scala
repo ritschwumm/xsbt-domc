@@ -7,14 +7,14 @@ import xsbtUtil.types._
 import xsbtUtil.data._
 import xsbtUtil.{ util => xu }
 
-import xsbtWebApp.WebAppPlugin
-import xsbtWebApp.Import.WebAppProcessor
+import xsbtAsset.AssetPlugin
+import xsbtAsset.Import.AssetProcessor
 
 import xsbtDomc.compiler._
 
 object Import {
 	val domcFilter		= GlobFilter("*.dom") && xu.filter.NotDirectoryFilter
-	val domcProcessor	= taskKey[WebAppProcessor]("processor for xsbt-webapp")
+	val domcProcessor	= taskKey[AssetProcessor]("processor for xsbt-asset")
 	val domcFileSuffix	= settingKey[String]("suffix for file names")
 	val domcBuildDir	= settingKey[File]("directory for output files")
 }
@@ -23,7 +23,7 @@ object DomcProcessorPlugin extends AutoPlugin {
 	//------------------------------------------------------------------------------
 	//## exports
 	
-	override val requires:Plugins		= WebAppPlugin
+	override val requires:Plugins		= AssetPlugin
 	
 	override val trigger:PluginTrigger	= allRequirements
 	
@@ -45,7 +45,7 @@ object DomcProcessorPlugin extends AutoPlugin {
 	//------------------------------------------------------------------------------
 	//## tasks
 		
-	def processorTask(streams:TaskStreams, fileSuffix:String, buildDir:File):WebAppProcessor	=
+	def processorTask(streams:TaskStreams, fileSuffix:String, buildDir:File):AssetProcessor	=
 			inputs => {
 				streams.log info s"compiling dom templates to ${buildDir}"
 				IO delete buildDir

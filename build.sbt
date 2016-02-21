@@ -2,7 +2,7 @@ sbtPlugin		:= true
 
 name			:= "xsbt-domc"
 organization	:= "de.djini"
-version			:= "1.11.0"
+version			:= "1.12.0"
 
 scalacOptions	++= Seq(
 	"-deprecation",
@@ -20,11 +20,11 @@ scalacOptions	++= Seq(
 
 conflictManager	:= ConflictManager.strict
 addSbtPlugin("de.djini" % "xsbt-util"	% "0.6.0")
-addSbtPlugin("de.djini" % "xsbt-webapp"	% "1.9.0")
+addSbtPlugin("de.djini" % "xsbt-asset"	% "0.1.0")
 
 resolvers		+= "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 libraryDependencies	++= Seq(
-	"org.specs2"	%%	"specs2-core"	% "3.6.5"	% "test"
+	"org.specs2"		%%	"specs2-core"	% "3.7"	% "test"
 )
 dependencyOverrides	++= Set(
 	"org.scalamacros"	%% "quasiquotes"	% "2.0.1"
