@@ -102,7 +102,7 @@ object XmlCompiler {
 	//------------------------------------------------------------------------------
 	//## validation
 	
-	// TODO validate toplevel xids to exists and be js path
+	// TODO validate toplevel xids to exist and be a js path
 	
 	private def validate(pnode:PNode):Safe[String,PTag]	=
 			for {
@@ -119,7 +119,7 @@ object XmlCompiler {
 			.preventing	(())
 	
 	//------------------------------------------------------------------------------
-	//## ast to numbered ast
+	//## plain ast to numbered ast
 	
 	private def number(pnode:PNode):INode	=
 			numberImpl(pnode, 0)._1
