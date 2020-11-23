@@ -7,9 +7,9 @@ class XmlCompilerTest extends Specification {
 		"compile xml" in {
 			val xml	= """<xml xid="a.b.c"/>"""
 			val js	= XmlCompiler compileString xml
-			
+
 			// println(js cata (_.toISeq mkString "\n", identity))
-			
+
 			js.isWin mustEqual true
 		}
 	}
