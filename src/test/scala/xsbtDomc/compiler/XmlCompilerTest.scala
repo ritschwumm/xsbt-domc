@@ -1,16 +1,14 @@
 package xsbtDomc.compiler
 
-import org.specs2.mutable._
+import minitest._
 
-class XmlCompilerTest extends Specification {
-	"XmlCompilerTest" should {
-		"compile xml" in {
-			val xml	= """<xml xid="a.b.c"/>"""
-			val js	= XmlCompiler compileString xml
+object XmlCompilerTest extends SimpleTestSuite {
+	test("XmlCompilerTest should compile xml") {
+		val xml	= """<xml xid="a.b.c"/>"""
+		val js	= XmlCompiler compileString xml
 
-			// println(js cata (_.toISeq mkString "\n", identity))
+		// println(js cata (_.toISeq mkString "\n", identity))
 
-			js.isWin mustEqual true
-		}
+		assert(js.isWin)
 	}
 }

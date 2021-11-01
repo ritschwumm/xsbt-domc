@@ -62,6 +62,7 @@ object XmlCompiler {
 					.toVector
 					.map		{ it:MetaData => (it.key, it.value.text) }
 					.partition	{ _._1 == hash }
+
 				for {
 					xid			<-	xids match {
 										case ISeq()			=> win(None)
@@ -95,7 +96,7 @@ object XmlCompiler {
 		pnode match {
 			case PTag(opt, _, _, children)	=> opt.toVector ++ (children flatMap gatherXids)
 			case _							=> Vector.empty
-			}
+		}
 
 	//------------------------------------------------------------------------------
 	//## validation
@@ -126,11 +127,11 @@ object XmlCompiler {
 		pnode match {
 			case PTag(xid, name, attributes, children)	=>
 				val (mapped, next)	=
-						(children foldLeft (ISeq.empty[INode], index)) { (state:(ISeq[INode], Int), child:PNode) =>
-							val (accu, current)	= state
-							val (mapped, next)	= numberImpl(child, current)
-							(accu :+ mapped, next)
-						}
+					(children foldLeft (ISeq.empty[INode], index)) { (state:(ISeq[INode], Int), child:PNode) =>
+						val (accu, current)	= state
+						val (mapped, next)	= numberImpl(child, current)
+						(accu :+ mapped, next)
+					}
 				(ITag(next, xid, name, attributes, mapped), next+1)
 			case PText(text)	=> (IText(index, text),	index+1)
 			case PComment(text)	=> (IComment(text),		index)
@@ -154,13 +155,13 @@ object XmlCompiler {
 
 			val hashExpr		= JS hashExpr hash
 			val functionExpr	=
-					JS functionExpr (
-						paramRefs	= ISeq.empty,
-						bodyStmts	= statements,
-						resultExpr	= hashExpr
-					)
+				JS functionExpr (
+					paramRefs	= ISeq.empty,
+					bodyStmts	= statements,
+					resultExpr	= hashExpr
+				)
 			val templateStmts	=
-					JS makeNamespaceStmts (path, functionExpr)
+				JS makeNamespaceStmts (path, functionExpr)
 
 			templateStmts + "\n"
 		}
@@ -171,10 +172,10 @@ object XmlCompiler {
 	private def generateHashImpl(root:Boolean)(inode:INode):ISeq[(String,String)]	=
 		inode match {
 			case ITag(index, xid, _, _, children)	=>
-					(	if (root)	Vector.empty
-						else		xid.toVector map { xid => (xid, mkVarName(index)) }
-					)	++
-					(children flatMap generateHashImpl(false))
+				(	if (root)	Vector.empty
+					else		xid.toVector map { xid => (xid, mkVarName(index)) }
+				)	++
+				(children flatMap generateHashImpl(false))
 			case IText(index, text)		=> ISeq.empty
 			case IComment(text)			=> ISeq.empty
 		}
@@ -191,14 +192,14 @@ object XmlCompiler {
 
 				// TODO extract?
 				val childIndizes	=
-						children collect {
-							case ITag(index, _, _, _, _)	=> index
-							case IText(index, _)			=> index
-						}
+					children collect {
+						case ITag(index, _, _, _, _)	=> index
+						case IText(index, _)			=> index
+					}
 				val childVarNames		=
-						childIndizes map mkVarName
+					childIndizes map mkVarName
 				val appendChildStmts	=
-						childVarNames map { subVarName => JS appendChildStmt (varName, subVarName) }
+					childVarNames map { subVarName => JS appendChildStmt (varName, subVarName) }
 
 				childStmts ++ Vector(createStmt) ++ setAttrStmts ++ appendChildStmts
 
